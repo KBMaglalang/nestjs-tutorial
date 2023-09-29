@@ -12,3 +12,4 @@ services:
       - freecodecamp
 networks:
   freecodecamp:
+# do: docker compose dev-db -d to run the script, -d to run in the background, dev-db being the databse
