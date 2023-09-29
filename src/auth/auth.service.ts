@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+// import { User, Bookmark } from '@prisma/client'; // ! prisma auto generates the types of the models
 
 // ! create a matching service fucntion here to be used in the controller
 // ! do all the business logic here - connecting to the database, editing fields, etc>>>
