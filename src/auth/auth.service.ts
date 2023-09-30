@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto } from './dto';
 // import { User, Bookmark } from '@prisma/client'; // ! prisma auto generates the types of the models
 import * as argon from 'argon2'; // ! use this since it is better than bcrypt
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 // ! create a matching service fucntion here to be used in the controller
 // ! do all the business logic here - connecting to the database, editing fields, etc>>>
@@ -16,31 +17,62 @@ export class AuthService {
     // generate the password hash
     const hash = await argon.hash(dto.password);
 
-    // save the new user in the db
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        hash,
-      },
-      // select: { //! would usually use something like transformers instead
-      //   //  this is one option to limit the return data sent back to the client
-      //   id: true,
-      //   email: true,
-      //   createdAt: true,
-      // },
-    });
+    try {
+      // save the new user in the db
+      const user = await this.prisma.user.create({
+        data: {
+          email: dto.email,
+          hash,
+        },
+        // select: { //! would usually use something like transformers instead
+        //   //  this is one option to limit the return data sent back to the client
+        //   id: true,
+        //   email: true,
+        //   createdAt: true,
+        // },
+      });
 
-    delete user.hash; // ! this is quick and dirty
+      delete user.hash; // ! this is quick and dirty
 
-    // return the saved user
-    return user;
-    // ! note the hash should not be returned to the client
+      // return the saved user
+      return user;
+      // ! note the hash should not be returned to the client
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          // ! error number from prisma - check their documentation to find out more
+          throw new ForbiddenException('Credentials taken');
+        }
+      }
+
+      throw error;
+    }
 
     // return { msg: 'I have signed up' };
   }
 
-  signin() {
-    return { msg: 'I have signed in' };
+  async signin(dto: AuthDto) {
+    //find the user by email
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: dto.email,
+      },
+    });
+    //if the user does not exist throw exception
+    if (!user) throw new ForbiddenException('Credentials Incorrect');
+
+    // compare password
+    const pwMatches = await argon.verify(user.hash, dto.password);
+    // if password incorrect throw exception
+    if (!pwMatches) {
+      throw new ForbiddenException('Credentials Incorrect');
+    }
+
+    delete user.hash;
+
+    // send back the user
+    return user;
+    // return { msg: 'I have signed in' };
   }
 }
 
