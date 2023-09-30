@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 // ! module decorator for the class - required to indicator if it is a module or not
 @Module({
-  imports: [AuthModule, UserModule, BookmarkModule], // other modulres are added automatically with the nest.js generator
+  imports: [AuthModule, UserModule, BookmarkModule, PrismaModule], // other modulres are added automatically with the nest.js generator
 })
 export class AppModule {}
 
