@@ -4,6 +4,8 @@ import { AuthDto } from './dto';
 // import { User, Bookmark } from '@prisma/client'; // ! prisma auto generates the types of the models
 import * as argon from 'argon2'; // ! use this since it is better than bcrypt
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 // ! create a matching service fucntion here to be used in the controller
 // ! do all the business logic here - connecting to the database, editing fields, etc>>>
@@ -11,7 +13,11 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 @Injectable({}) // ! for dependency injection
 export class AuthService {
   // test() {}
-  constructor(private prisma: PrismaService) {} // ! throws an error: nest js does not know what that is even if it is in the auth module, the prisma module has no exported it to other providers
+  constructor(
+    private prisma: PrismaService,
+    private jwt: JwtService,
+    private config: ConfigService,
+  ) {} // ! throws an error: nest js does not know what that is even if it is in the auth module, the prisma module has no exported it to other providers
 
   async signUp(dto: AuthDto) {
     // generate the password hash
@@ -35,7 +41,8 @@ export class AuthService {
       delete user.hash; // ! this is quick and dirty
 
       // return the saved user
-      return user;
+      // return user;
+      return this.signToken(user.id, user.email);
       // ! note the hash should not be returned to the client
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -68,11 +75,33 @@ export class AuthService {
       throw new ForbiddenException('Credentials Incorrect');
     }
 
-    delete user.hash;
+    // delete user.hash;
 
     // send back the user
-    return user;
+    // return user;
     // return { msg: 'I have signed in' };
+    return this.signToken(user.id, user.email);
+  }
+
+  async signToken(
+    userId: number,
+    email: string,
+  ): Promise<{ access_token: string }> {
+    const payload = {
+      sub: userId,
+      email,
+    };
+
+    const secret = this.config.get('JWT_SECRET');
+
+    const token = await this.jwt.signAsync(payload, {
+      expiresIn: '15m',
+      secret,
+    });
+
+    return {
+      access_token: token,
+    };
   }
 }
 
