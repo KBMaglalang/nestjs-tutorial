@@ -1,4 +1,12 @@
-import { Body, Controller, ParseIntPipe, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  ParseIntPipe,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { AuthDto } from './dto';
@@ -12,6 +20,7 @@ export class AuthController {
     // this.authService.test(); // !temp - can easily call the function in the service class this way
   }
 
+  // @HttpCode(HttpStatus.OK)
   @Post('signup') // * POST auth/signup
   // signUp(@Req() req: Request) {
   // ! DON'T USE THE REQUEST OBJECT OF THE UNDERLYING LIBRARY (EXPRESS FASTIFY) IN CASE YOU WANT TO SWITCH TO THE OTHER
@@ -40,6 +49,7 @@ export class AuthController {
     return this.authService.signUp(dto);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('signin') // * POST auth/signin
   signIn(@Body() dto: AuthDto) {
     // return 'I am signin';
