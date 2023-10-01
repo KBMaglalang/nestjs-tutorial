@@ -1,14 +1,18 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { User } from '@prisma/client';
 import { Request } from 'express';
+import { GetUser } from 'src/auth/decorator';
 import { JwtGuard } from 'src/auth/guard';
 
+@UseGuards(JwtGuard) // ! require an identity in the user controller on a global level for the users route
 @Controller('users')
 export class UserController {
   // @UseGuards(AuthGuard('jwt')) // ! passport already has a guard you can use along with your strategy
-  @UseGuards(JwtGuard) // ! setting up a guard class
+  // @UseGuards(JwtGuard) // ! setting up a guard class
   @Get('me') // /users/me
-  getMe(@Req() req: Request) {
+  // getMe(@Req() req: Request) {
+  getMe(@GetUser() user: User) {
     // ! with the use of the strategy, data sent from the validate is sent to here as well and we can do things with it
     // console.log(
     //   '🚀 ~ file: user.controller.ts:10 ~ UserController ~ getMe ~ Req:',
@@ -16,6 +20,6 @@ export class UserController {
     // );
 
     // return 'user info';
-    return req.user;
+    return user;
   }
 }
