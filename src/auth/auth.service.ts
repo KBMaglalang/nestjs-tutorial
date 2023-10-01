@@ -1,5 +1,5 @@
+import { PrismaService } from '../prisma/prisma.service';
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto } from './dto';
 // import { User, Bookmark } from '@prisma/client'; // ! prisma auto generates the types of the models
 import * as argon from 'argon2'; // ! use this since it is better than bcrypt
