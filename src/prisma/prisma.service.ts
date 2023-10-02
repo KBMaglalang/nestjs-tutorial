@@ -15,4 +15,12 @@ export class PrismaService extends PrismaClient {
     });
     // console.log({ config: config.get('DATABASE_URL') });
   }
+
+  cleanDb() {
+    return this.$transaction([
+      // ! there is a possibility that prisma may optimize and still delete the user before the bookmarks, so use transaction to force it to do in order
+      this.bookmark.deleteMany(),
+      this.user.deleteMany(),
+    ]);
+  }
 }
