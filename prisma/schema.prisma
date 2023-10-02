@@ -36,7 +36,7 @@ model Bookmark {
   link        String
 
   userId Int
-  user   User @relation(fields: [userId], references: [id]) // one user can have multiple bookmarks
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade) // one user can have multiple bookmarks
 
   @@map("bookmarks")
 }
